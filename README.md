@@ -1,47 +1,51 @@
 # banking-data-pipeline
 
-Dự án học Data Engineering: pipeline xử lý giao dịch ngân hàng giả lập bằng Python, SQL Server Express, SQL và pytest.
+Project học Data Engineering bằng Python và SQL Server Express, sử dụng dữ liệu giao dịch giả lập.
 
-## Mục tiêu
+## Pipeline hiện có
 
-CSV giả lập → Python Extract → Transform và kiểm tra chất lượng dữ liệu → SQL Server Express → truy vấn phân tích → kiểm thử.
+1. Đọc CSV từ `data/raw/transactions.csv`.
+2. Kiểm tra cấu trúc CSV, chuẩn hóa dữ liệu và tách dòng hợp lệ/không hợp lệ.
+3. Ghi kết quả vào `data/processed/valid_transactions.csv` và `data/processed/rejected_transactions.csv`. File bị từ chối có mã lý do và dữ liệu gốc.
+4. Nạp dòng hợp lệ vào SQL Server Express. `transaction_id` là khóa chính; chạy lại sẽ bỏ qua mã đã có.
+5. Chạy truy vấn phân tích trong `sql/analytics.sql`.
+6. Kiểm tra logic bằng pytest.
 
-Dự án sẽ phân loại bản ghi hợp lệ và không hợp lệ, lưu lý do từ chối, hỗ trợ nạp lại dữ liệu an toàn và không lưu thông tin đăng nhập trong mã nguồn.
+Dữ liệu mẫu có 15 dòng: 9 hợp lệ và 6 dòng bị từ chối, bao gồm một giao dịch trùng mã. Đây đều là dữ liệu giả lập.
 
-## Cấu trúc hiện tại
+## Cấu trúc thư mục
 
 ```text
 banking-data-pipeline/
 ├── data/
-│   ├── raw/                 # CSV đầu vào (dữ liệu giả lập)
-│   └── processed/           # Kết quả xử lý được tạo khi chạy pipeline
-├── docs/                    # Tài liệu thiết kế và hướng dẫn
-├── sql/                     # Script tạo bảng và truy vấn phân tích
-├── src/banking_pipeline/    # Các module Python của pipeline
+│   ├── raw/                  # CSV giả lập và mô tả dữ liệu
+│   └── processed/            # CSV đầu ra; được Git bỏ qua
+├── docs/                     # Kiến trúc, quy tắc chất lượng, hướng dẫn SQL
+├── scripts/
+│   ├── run_transform.py      # Chạy Extract + Transform và ghi hai CSV đầu ra
+│   └── load_to_sqlserver.py  # Nạp CSV hợp lệ vào SQL Server
+├── sql/
+│   ├── schema.sql            # Tạo bảng dbo.transactions trong database đã chọn
+│   └── analytics.sql         # Truy vấn phân tích
+├── src/banking_pipeline/     # Module extract, transform, load
 ├── tests/
-│   ├── unit/                # Kiểm thử từng hàm/module
-│   └── integration/         # Kiểm thử tích hợp với SQL Server
-├── .env.example             # Mẫu cấu hình, không chứa thông tin đăng nhập
-├── pyproject.toml           # Metadata và cấu hình công cụ Python
-└── requirements.txt         # Các thư viện Python cần cài
+│   ├── fixtures/             # CSV nhỏ dùng trong unit test
+│   ├── integration/          # Dành cho test tích hợp trong tương lai
+│   └── unit/                 # Test Extract, Transform và logic Loader giả lập
+├── .env.example              # Mẫu cấu hình kết nối, không chứa mật khẩu
+├── pyproject.toml            # Metadata và cấu hình pytest
+└── requirements.txt          # Thư viện project
 ```
 
-## Các giai đoạn
+## Yêu cầu
 
-1. Khung project (đã tạo).
-2. CSV giao dịch giả lập.
-3. Extract, transform và kiểm tra chất lượng dữ liệu.
-4. Nạp dữ liệu vào SQL Server Express theo cách chạy lại an toàn.
-5. Truy vấn SQL phân tích.
-6. Kiểm thử bằng pytest và chạy thử toàn pipeline.
+- Python 3.10 trở lên.
+- SQL Server Express và ODBC Driver for SQL Server.
+- VS Code cùng extension SQL Server (`mssql`) để chạy và xem truy vấn SQL.
 
-Hiện tại đây mới là khung thư mục và cấu hình ban đầu; các module chưa có logic xử lý.
+## Thiết lập lần đầu
 
-## Cấu hình kết nối
-
-Khi triển khai phần nạp dữ liệu, sao chép `.env.example` thành `.env` và cập nhật giá trị phù hợp trên máy. Không commit `.env` hoặc thông tin đăng nhập lên GitHub.
-
-## Cài thư viện (khi bắt đầu triển khai pipeline)
+Mở PowerShell tại thư mục gốc project. Tạo và kích hoạt môi trường Python riêng, rồi cài dependency:
 
 ```powershell
 python -m venv .venv
@@ -49,30 +53,42 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Các lệnh trên chỉ là hướng dẫn; môi trường hiện tại chưa được thay đổi và thư viện chưa được cài.
+Tạo file `.env` từ `.env.example` nếu chưa có:
 
-## Chạy thử Extract và Transform
+```powershell
+if (-not (Test-Path .env)) {
+    Copy-Item .env.example .env
+}
+```
 
-Mở terminal trong VS Code tại thư mục gốc project, rồi chạy:
+Cấu hình mẫu dùng Windows Authentication, server `localhost\SQLEXPRESS` và database `BankingTransactions`. Điều chỉnh `.env` nếu máy bạn dùng giá trị khác. Không commit `.env` lên Git.
+
+Database `BankingTransactions` cần tồn tại trước. `sql/schema.sql` chỉ tạo bảng `dbo.transactions`, không tạo database. Xem [database_setup.md](docs/database_setup.md) để biết các bước SQL Server.
+
+## Chạy pipeline
+
+Khi `.venv` đang được kích hoạt và database/bảng đã sẵn sàng, chạy từ thư mục gốc:
 
 ```powershell
 python scripts/run_transform.py
+python scripts/load_to_sqlserver.py
 ```
 
-Lệnh dùng CSV mẫu theo mặc định và tạo hai file:
+Kết quả Transform nằm trong `data/processed/`. Với dữ liệu mẫu, loader nạp 9 dòng ở lần đầu; chạy lại sẽ bỏ qua các dòng đã có.
 
-- `data/processed/valid_transactions.csv`: các giao dịch hợp lệ đã chuẩn hóa.
-- `data/processed/rejected_transactions.csv`: các dòng bị từ chối, mã lý do và dữ liệu gốc.
+Để chạy truy vấn phân tích, mở `sql/analytics.sql` trong VS Code, kết nối tới `BankingTransactions` bằng extension `mssql`, rồi chọn **Run**. `SUM(amount)` là tổng giá trị giao dịch, không phải số dư ròng.
 
-Không cần cài thêm thư viện Python cho lệnh này. Có thể chọn file đầu vào khác bằng `--input duong_dan\file.csv` hoặc thư mục kết quả khác bằng `--output-dir duong_dan\thu_muc`.
+## Chạy pytest
 
-
-## Kiểm tra bằng pytest
-
-Kích hoạt môi trường `.venv`, sau đó chạy từ thư mục gốc project:
+Trong môi trường `.venv`, chạy:
 
 ```powershell
 python -m pytest
 ```
 
-Unit test kiểm tra Extract/Transform, cấu hình kết nối và logic insert/skip của loader bằng fake connection; pytest không kết nối SQL Server.
+Unit test bao phủ Extract, Transform, cấu hình connection string và logic insert/skip với fake connection. Các test không kết nối SQL Server thật; tính idempotent trên SQL Server đã được xác nhận riêng bằng cách chạy loader hai lần.
+
+## Ghi chú
+
+- `.env`, `.venv/` và các file sinh trong `data/processed/` không được commit.
+- Docker không cần cho phiên bản hiện tại; Python và SQL Server chạy trực tiếp trên Windows.

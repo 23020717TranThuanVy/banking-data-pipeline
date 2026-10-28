@@ -75,4 +75,4 @@ Kích hoạt môi trường `.venv`, sau đó chạy từ thư mục gốc proje
 python -m pytest
 ```
 
-Unit test kiểm tra Extract/Transform và dữ liệu mẫu; chúng không kết nối SQL Server.
+Unit test kiểm tra Extract/Transform, cấu hình kết nối và logic insert/skip của loader bằng fake connection; pytest không kết nối SQL Server.

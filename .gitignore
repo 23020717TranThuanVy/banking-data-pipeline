@@ -20,3 +20,10 @@ data/processed/*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.pytest-tmp/
+pytest-cache-files-*/

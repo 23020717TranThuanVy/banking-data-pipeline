@@ -65,3 +65,14 @@ Lệnh dùng CSV mẫu theo mặc định và tạo hai file:
 - `data/processed/rejected_transactions.csv`: các dòng bị từ chối, mã lý do và dữ liệu gốc.
 
 Không cần cài thêm thư viện Python cho lệnh này. Có thể chọn file đầu vào khác bằng `--input duong_dan\file.csv` hoặc thư mục kết quả khác bằng `--output-dir duong_dan\thu_muc`.
+
+
+## Kiểm tra bằng pytest
+
+Kích hoạt môi trường `.venv`, sau đó chạy từ thư mục gốc project:
+
+```powershell
+python -m pytest
+```
+
+Unit test kiểm tra Extract/Transform và dữ liệu mẫu; chúng không kết nối SQL Server.

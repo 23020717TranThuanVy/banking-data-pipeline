@@ -1,4 +1,4 @@
-﻿# banking-data-pipeline
+# banking-data-pipeline
 
 Dự án học Data Engineering: pipeline xử lý giao dịch ngân hàng giả lập bằng Python, SQL Server Express, SQL và pytest.
 
@@ -50,3 +50,18 @@ python -m pip install -r requirements.txt
 ```
 
 Các lệnh trên chỉ là hướng dẫn; môi trường hiện tại chưa được thay đổi và thư viện chưa được cài.
+
+## Chạy thử Extract và Transform
+
+Mở terminal trong VS Code tại thư mục gốc project, rồi chạy:
+
+```powershell
+python scripts/run_transform.py
+```
+
+Lệnh dùng CSV mẫu theo mặc định và tạo hai file:
+
+- `data/processed/valid_transactions.csv`: các giao dịch hợp lệ đã chuẩn hóa.
+- `data/processed/rejected_transactions.csv`: các dòng bị từ chối, mã lý do và dữ liệu gốc.
+
+Không cần cài thêm thư viện Python cho lệnh này. Có thể chọn file đầu vào khác bằng `--input duong_dan\file.csv` hoặc thư mục kết quả khác bằng `--output-dir duong_dan\thu_muc`.

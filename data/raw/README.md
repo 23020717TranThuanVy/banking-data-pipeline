@@ -1,4 +1,4 @@
-﻿# Dữ liệu CSV giả lập
+# Dữ liệu CSV giả lập
 
 `transactions.csv` được soạn thủ công cho mục đích học tập. Tên tài khoản và giao dịch đều là mã giả; không lấy từ ngân hàng hay cá nhân thật.
 
@@ -25,4 +25,4 @@
 - Một dòng dùng loại giao dịch ngoài danh sách mẫu (`crypto`).
 - Dòng cuối lặp lại `TXN0003` để kiểm tra cách xử lý mã giao dịch trùng.
 
-Quy tắc phân loại cuối cùng sẽ được hiện thực và kiểm tra ở giai đoạn transform. Dữ liệu này chỉ là đầu vào mẫu, chưa được xử lý hay nạp vào database.
+Các quy tắc phân loại được hiện thực trong `src/banking_pipeline/transform.py` và mô tả tại `docs/quality_rules.md`. Dữ liệu này chỉ là đầu vào mẫu, chưa được xử lý hay nạp vào database.
